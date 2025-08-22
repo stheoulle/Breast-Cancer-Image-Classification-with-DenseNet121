@@ -1,3 +1,5 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 import streamlit as st
 import tensorflow as tf
 import numpy as np
@@ -5,6 +7,8 @@ from io import BytesIO
 from PIL import Image
 import requests
 import h5py
+import tempfile
+import os
 
 # Class mapping
 class_mapping = {
@@ -14,23 +18,10 @@ class_mapping = {
 }
 
 # Function to load the combined model
-@st.cache(allow_output_mutation=True)
+@st.cache_resource
 def load_model():
-    # URLs for model parts on GitHub
-    base_url = "https://github.com/m3mentomor1/Breast-Cancer-Image-Classification/raw/main/splitted_model/"
-    model_parts = [f"{base_url}model.h5.part{i:02d}" for i in range(1, 35)]
-
-    # Download and combine model parts
-    model_bytes = b''
-    for part_url in model_parts:
-        response = requests.get(part_url)
-        model_bytes += response.content
-
-    # Create an in-memory HDF5 file
-    with h5py.File(BytesIO(model_bytes), 'r') as hf:
-        # Load the combined model
-        model = tf.keras.models.load_model(hf)
-    
+    model_path = "model.h5"  # path to your model file
+    model = tf.keras.models.load_model(model_path, compile=False)
     return model
 
 # Function to preprocess and make predictions
